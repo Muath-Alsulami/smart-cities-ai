@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>الذكاء الاصطناعي التوليدي وإدارة الحشود الضخمة في المدن الذكية</title>
+<meta name="description" content="بحث تطبيقي في التعلم العميق التنبؤي والتوليدي لإدارة الحشود الضخمة في المدن الذكية، من تجربة SDAIA في الحج إلى مفهوم Cognitive Cities.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ===================== RESET & BASE ===================== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{background:#050505;scroll-behavior:smooth;}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto;} }
+
+:root{
+  --void:#050505;
+  --glass:rgba(255,255,255,0.045);
+  --glass-strong:rgba(255,255,255,0.08);
+  --glass-border:rgba(255,255,255,0.10);
+  --cyan:#00f3ff;
+  --cyan-soft:rgba(0,243,255,0.45);
+  --cyan-dim:rgba(0,243,255,0.12);
+  --violet:#8a2be2;
+  --violet-text:#c4a3f5;
+  --violet-soft:rgba(138,43,226,0.45);
+  --violet-dim:rgba(138,43,226,0.14);
+  --ink:#f2f5f7;
+  --text-main:#cad0d6;
+  --ink-soft:#9aa3ad;
+  --ink-faint:#767f8a;
+  --ease-out:cubic-bezier(.16,1,.3,1);
+  --ease-soft:cubic-bezier(.4,0,.2,1);
+  --container:1180px;
+}
+
+body{
+  font-family:'Cairo',sans-serif;
+  background:var(--void);
+  color:var(--text-main);
+  line-height:2;
+  font-size:16px;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+  overflow-x:hidden;
+  position:relative;
+}
+body::before{
+  content:'';
+  position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse 900px 600px at 12% -8%, rgba(138,43,226,0.12), transparent 60%),
+    radial-gradient(ellipse 900px 700px at 112% 28%, rgba(0,243,255,0.09), transparent 60%);
+  pointer-events:none;
+  z-index:0;
+}
+.grain{
+  position:fixed;inset:0;z-index:9998;pointer-events:none;opacity:.035;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+}
+img{max-width:100%;display:block;}
+a{color:inherit;text-decoration:none;}
+ul{list-style:none;}
+.mono{font-family:'JetBrains Mono',monospace;}
+::selection{background:var(--cyan);color:#031014;}
+:focus-visible{outline:2px solid var(--cyan);outline-offset:3px;border-radius:4px;}
+::-webkit-scrollbar{width:10px;}
+::-webkit-scrollbar-track{background:var(--void);}
+::-webkit-scrollbar-thumb{background:linear-gradient(var(--violet),var(--cyan));border-radius:6px;}
+section[id]{scroll-margin-top:88px;}
+
+/* ===================== PROGRESS BAR ===================== */
+.progress-track{position:fixed;top:0;right:0;left:0;height:3px;z-index:9999;background:rgba(255,255,255,0.05);}
+.progress-bar{position:absolute;top:0;right:0;height:100%;width:0%;background:linear-gradient(90deg,var(--violet),var(--cyan));box-shadow:0 0 10px var(--cyan-soft),0 0 22px var(--violet-dim);}
+
+/* ===================== NAV ===================== */
+.nav{
+  position:fixed;top:0;right:0;left:0;z-index:900;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:24px clamp(20px,5vw,56px);
+  background:transparent;border-bottom:1px solid transparent;
+  transition:background .4s var(--ease-soft), border-color .4s var(--ease-soft), padding .4s var(--ease-soft);
+}
+.nav.is-scrolled{
+  background:rgba(5,5,5,0.66);
+  backdrop-filter:blur(16px) saturate(140%);
+  -webkit-backdrop-filter:blur(16px) saturate(140%);
+  border-bottom:1px solid var(--glass-border);
+  padding:15px clamp(20px,5vw,56px);
+}
+.nav-brand{display:flex;align-items:center;gap:10px;font-size:11.5px;letter-spacing:.12em;color:var(--ink-soft);white-space:nowrap;}
+.pulse-dot{width:6px;height:6px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan);animation:pulse-dot 2.4s var(--ease-soft) infinite;flex-shrink:0;}
+.nav-links{display:flex;gap:30px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;}
+.nav-links::-webkit-scrollbar{display:none;}
+.nav-links a{font-size:14px;color:var(--ink-soft);white-space:nowrap;position:relative;padding:4px 1px;transition:color .25s var(--ease-soft);}
+.nav-links a:hover{color:var(--ink);}
+.nav-links a::after{content:'';position:absolute;right:0;left:0;bottom:-4px;height:1px;background:linear-gradient(90deg,var(--cyan),var(--violet));transform:scaleX(0);transition:transform .35s var(--ease-out);}
+.nav-links a:hover::after{transform:scaleX(1);}
+@keyframes pulse-dot{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.35;transform:scale(1.5);}}
+
+/* ===================== HERO ===================== */
+.hero{position:relative;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:140px 24px 90px;overflow:hidden;}
+.hero-canvas{position:absolute;inset:0;z-index:0;}
+.hero-veil{position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:radial-gradient(ellipse 62% 56% at 50% 42%, rgba(5,5,5,.82) 0%, rgba(5,5,5,.4) 55%, transparent 78%);}
+.hero-content{position:relative;z-index:2;max-width:940px;display:flex;flex-direction:column;align-items:center;gap:30px;}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:10px;font-size:12px;letter-spacing:.16em;color:var(--ink-soft);padding:9px 20px;border:1px solid var(--glass-border);border-radius:999px;background:var(--glass);backdrop-filter:blur(10px);animation:fade-up .9s var(--ease-out) .1s both;}
+.hero h1{font-size:clamp(2.05rem,5.3vw,4.05rem);font-weight:800;line-height:1.4;
+  background:linear-gradient(100deg,var(--cyan) 0%, #bda8ff 35%, var(--violet) 60%, var(--cyan) 100%);
+  background-size:300% auto;-webkit-background-clip:text;background-clip:text;color:transparent;
+  animation:fade-up 1s var(--ease-out) .25s both, gradient-flow 9s linear infinite;}
+.hero h1 .sub{display:block;font-size:.42em;font-weight:600;margin-top:18px;
+  background:none;-webkit-background-clip:initial;background-clip:initial;-webkit-text-fill-color:initial;color:var(--ink-soft);}
+.hero-tagline{font-size:clamp(1rem,1.6vw,1.18rem);color:var(--ink-soft);max-width:640px;line-height:1.95;animation:fade-up .9s var(--ease-out) .45s both;}
+.hero-meta{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;animation:fade-up .9s var(--ease-out) .62s both;}
+.meta-pill{display:flex;flex-direction:column;gap:5px;padding:13px 24px;border-radius:16px;background:var(--glass);border:1px solid var(--glass-border);backdrop-filter:blur(12px);min-width:148px;transition:border-color .3s var(--ease-soft), transform .3s var(--ease-soft);}
+.meta-pill:hover{border-color:var(--cyan-soft);transform:translateY(-2px);}
+.meta-pill .k{font-size:10.5px;letter-spacing:.1em;color:var(--ink-faint);}
+.meta-pill .v{font-size:14.5px;font-weight:600;color:var(--ink);}
+.scroll-cue{position:absolute;bottom:40px;right:50%;transform:translateX(50%);display:flex;flex-direction:column;align-items:center;gap:10px;z-index:2;color:var(--ink-faint);animation:fade-up .9s var(--ease-out) 1s both;}
+.scroll-cue .mouse{width:24px;height:38px;border:1.5px solid var(--ink-soft);border-radius:14px;position:relative;}
+.scroll-cue .mouse::before{content:'';position:absolute;top:7px;right:50%;width:3px;height:7px;border-radius:2px;background:var(--cyan);box-shadow:0 0 6px var(--cyan);transform:translateX(50%);animation:scroll-wheel 2s var(--ease-soft) infinite;}
+.scroll-cue span{font-size:11px;letter-spacing:.08em;}
+@keyframes fade-up{from{opacity:0;transform:translateY(22px);}to{opacity:1;transform:translateY(0);}}
+@keyframes gradient-flow{0%{background-position:0% 50%;}100%{background-position:300% 50%;}}
+@keyframes scroll-wheel{0%{opacity:1;top:7px;}70%{opacity:0;top:18px;}100%{opacity:0;top:7px;}}
+
+/* ===================== SECTIONS / LAYOUT ===================== */
+.section{position:relative;padding:clamp(86px,11vw,150px) 0;z-index:1;}
+.container{max-width:var(--container);margin:0 auto;padding:0 clamp(20px,5vw,56px);}
+.section-head{display:flex;flex-direction:column;gap:14px;margin-bottom:50px;max-width:760px;}
+.eyebrow{display:inline-flex;align-items:center;gap:12px;font-family:'JetBrains Mono',monospace;font-size:12.5px;letter-spacing:.14em;color:var(--ink-faint);}
+.eyebrow .num{color:var(--cyan);font-weight:600;}
+.section-head h2{font-size:clamp(1.65rem,3.3vw,2.4rem);font-weight:800;color:var(--ink);line-height:1.5;}
+
+/* ===================== GLASS CARDS ===================== */
+.card{
+  background:var(--glass);border:1px solid var(--glass-border);border-radius:22px;
+  padding:clamp(28px,4vw,46px);backdrop-filter:blur(14px) saturate(120%);-webkit-backdrop-filter:blur(14px) saturate(120%);
+  position:relative;overflow:hidden;
+  transition:border-color .4s var(--ease-soft), transform .4s var(--ease-soft);
+}
+.card::before{content:'';position:absolute;inset:0;border-radius:inherit;background:linear-gradient(135deg, rgba(255,255,255,.06), transparent 42%);pointer-events:none;}
+.card:hover{border-color:var(--glass-strong);transform:translateY(-2px);}
+.card + .card{margin-top:24px;}
+.card-accent-cyan::after{content:'';position:absolute;top:0;right:0;width:3px;height:100%;background:linear-gradient(180deg,var(--cyan),transparent);}
+.card-accent-violet::after{content:'';position:absolute;top:0;right:0;width:3px;height:100%;background:linear-gradient(180deg,var(--violet),transparent);}
+
+.sub-title{display:flex;align-items:center;flex-wrap:wrap;gap:14px;font-size:1.28rem;font-weight:700;color:var(--ink);margin-bottom:24px;line-height:1.6;}
+.sub-num{font-size:13px;color:var(--cyan);background:rgba(0,243,255,.1);border:1px solid rgba(0,243,255,.3);padding:5px 12px;border-radius:8px;letter-spacing:.04em;flex-shrink:0;}
+.sub-num.violet{color:var(--violet-text);background:rgba(138,43,226,.12);border-color:rgba(138,43,226,.4);}
+
+.prose p{margin-bottom:20px;color:var(--text-main);font-size:1.03rem;}
+.prose p:last-child{margin-bottom:0;}
+
+.model-chip{display:inline-flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.07em;padding:7px 16px;border-radius:999px;margin-bottom:22px;}
+.model-chip.cyan{color:var(--cyan);background:rgba(0,243,255,.08);border:1px solid rgba(0,243,255,.3);}
+.model-chip.violet{color:var(--violet-text);background:rgba(138,43,226,.1);border:1px solid rgba(138,43,226,.38);}
+
+.paper-chips{display:flex;flex-wrap:wrap;gap:12px;margin:8px 0 28px;}
+.paper-chip{display:flex;flex-direction:column;gap:5px;padding:11px 18px;border-radius:14px;background:rgba(255,255,255,.035);border:1px solid var(--glass-border);}
+.paper-chip .pname{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan);font-weight:600;}
+.paper-chip .pdate{font-size:11px;color:var(--ink-faint);font-family:'JetBrains Mono',monospace;}
+
+.risk-tag{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.13em;color:var(--ink-faint);border:1px solid var(--glass-border);padding:6px 14px;border-radius:999px;margin-bottom:20px;}
+
+/* ===================== COMPARISON CARDS (3.3) ===================== */
+.compare-title{margin-top:8px;}
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+.compare-card{border-radius:24px;padding:clamp(28px,3.6vw,40px);position:relative;background:var(--glass);backdrop-filter:blur(14px);overflow:hidden;transition:transform .4s var(--ease-soft);}
+.compare-card:hover{transform:translateY(-3px);}
+.compare-card.cyan{border:1px solid rgba(0,243,255,.32);box-shadow:0 30px 60px -30px rgba(0,243,255,.18);}
+.compare-card.violet{border:1px solid rgba(138,43,226,.38);box-shadow:0 30px 60px -30px rgba(138,43,226,.22);}
+.compare-card .tag{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:11.5px;letter-spacing:.13em;padding:6px 14px;border-radius:999px;margin-bottom:20px;}
+.compare-card.cyan .tag{color:var(--cyan);background:rgba(0,243,255,.1);border:1px solid rgba(0,243,255,.3);}
+.compare-card.violet .tag{color:var(--violet-text);background:rgba(138,43,226,.12);border:1px solid rgba(138,43,226,.4);}
+.compare-card h3{font-size:1.4rem;margin-bottom:6px;color:var(--ink);}
+.compare-row{padding:16px 0;border-top:1px solid var(--glass-border);}
+.compare-row:first-of-type{border-top:none;padding-top:18px;}
+.compare-row .label{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.09em;color:var(--ink-faint);margin-bottom:8px;display:block;}
+.compare-row .value{color:var(--text-main);font-size:.96rem;line-height:1.85;}
+
+/* ===================== CASE STUDY CARDS (5.x) ===================== */
+.cases-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
+.case-card{padding:clamp(26px,3vw,34px);}
+.case-card .case-name{font-family:'JetBrains Mono',monospace;font-size:12.5px;letter-spacing:.1em;color:var(--cyan);margin-bottom:8px;display:block;}
+.case-card h3{font-size:1.22rem;margin-bottom:20px;color:var(--ink);line-height:1.6;}
+.case-field{margin-bottom:18px;}
+.case-field:last-child{margin-bottom:0;}
+.case-field .k{display:block;font-size:10.5px;color:var(--ink-faint);margin-bottom:7px;font-family:'JetBrains Mono',monospace;letter-spacing:.05em;}
+.case-field .v{color:var(--text-main);font-size:.92rem;line-height:1.8;}
+.case-field .v.source{color:var(--ink-soft);font-size:.84rem;}
+
+/* ===================== MATURITY LADDER (7) ===================== */
+.ladder{display:flex;position:relative;gap:24px;margin:46px 0 18px;}
+.ladder-track{position:absolute;top:14px;right:0;left:0;height:2px;background:linear-gradient(to left,var(--cyan),var(--violet));opacity:.45;z-index:0;}
+.ladder-stage{flex:1;position:relative;z-index:1;padding-top:48px;}
+.ladder-stage .node{position:absolute;top:0;right:calc(50% - 15px);width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;background:var(--void);border:2px solid var(--cyan);color:var(--ink);}
+.ladder-stage.stage-2 .node{border-color:#b48cf0;}
+.ladder-stage.stage-3 .node{border-color:var(--violet);}
+.ladder-stage h4{text-align:center;font-size:1.04rem;margin-bottom:10px;color:var(--ink);display:flex;flex-direction:column;gap:4px;}
+.ladder-stage h4 .en{font-size:.72em;color:var(--ink-faint);font-weight:500;letter-spacing:.04em;}
+.ladder-stage p{text-align:center;font-size:.87rem;color:var(--ink-soft);line-height:1.8;}
+@media (max-width:760px){
+  .ladder{flex-direction:column;gap:34px;}
+  .ladder-track{display:none;}
+  .ladder-stage{padding-top:0;padding-right:48px;text-align:right;}
+  .ladder-stage .node{top:2px;right:0;}
+  .ladder-stage h4,.ladder-stage p{text-align:right;}
+}
+
+/* ===================== PULL QUOTE (8) ===================== */
+.pull-quote{font-size:clamp(1.3rem,2.3vw,1.7rem);font-weight:700;line-height:1.75;margin:8px 0 30px;
+  background:linear-gradient(95deg,var(--ink) 25%,var(--cyan) 80%);-webkit-background-clip:text;background-clip:text;color:transparent;
+  border-right:3px solid var(--cyan-soft);padding-right:22px;}
+
+/* ===================== REFERENCES (9) ===================== */
+.ref-group{margin-bottom:38px;}
+.ref-group:last-child{margin-bottom:0;}
+.ref-group h3{font-size:1.05rem;font-weight:700;color:var(--ink);margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--glass-border);}
+.ref-list{display:flex;flex-direction:column;gap:16px;}
+.ref-item{font-size:.91rem;line-height:1.85;color:var(--ink-soft);text-align:left;overflow-wrap:anywhere;}
+.ref-item em{color:var(--text-main);font-style:italic;}
+.ref-item a{color:var(--cyan);border-bottom:1px solid rgba(0,243,255,.25);transition:border-color .25s;}
+.ref-item a:hover{border-color:var(--cyan);}
+
+/* ===================== FOOTER ===================== */
+.site-footer{padding:64px 0 56px;border-top:1px solid var(--glass-border);text-align:center;color:var(--ink-faint);font-size:.86rem;position:relative;z-index:1;}
+.site-footer .name{color:var(--ink-soft);font-weight:700;font-size:1rem;margin-bottom:8px;}
+.site-footer .line2{margin-bottom:18px;}
+.site-footer .tagline{font-size:11px;letter-spacing:.1em;}
+
+/* ===================== REVEAL ON SCROLL ===================== */
+.reveal{opacity:0;transform:translateY(30px);transition:opacity .85s var(--ease-out), transform .85s var(--ease-out);}
+.reveal.is-visible{opacity:1;transform:translateY(0);}
+.reveal-d1{transition-delay:.08s;}
+.reveal-d2{transition-delay:.16s;}
+.reveal-d3{transition-delay:.24s;}
+
+/* ===================== RESPONSIVE ===================== */
+@media (max-width:980px){
+  .cases-grid{grid-template-columns:1fr;}
+}
+@media (max-width:760px){
+  .compare-grid{grid-template-columns:1fr;}
+  body{font-size:15.5px;}
+  .nav-brand span:not(.pulse-dot){display:none;}
+}
+@media (max-width:480px){
+  .meta-pill{min-width:130px;padding:11px 18px;}
+  .hero{padding:120px 18px 80px;}
+}
+
+/* ===================== REDUCED MOTION ===================== */
+@media (prefers-reduced-motion: reduce){
+  .reveal{transition:none !important;opacity:1 !important;transform:none !important;}
+  .hero-eyebrow,.hero h1,.hero-tagline,.hero-meta,.scroll-cue{animation:none !important;opacity:1 !important;transform:none !important;}
+  .pulse-dot{animation:none !important;}
+  .scroll-cue .mouse::before{animation:none !important;}
+  .card:hover, .compare-card:hover, .meta-pill:hover{transform:none !important;}
+}
+</style>
+</head>
+<body>
+
+<div class="grain" aria-hidden="true"></div>
+<div class="progress-track" aria-hidden="true"><div class="progress-bar" id="progressBar"></div></div>
+
+<nav class="nav" id="siteNav">
+  <div class="nav-brand mono"><span class="pulse-dot" aria-hidden="true"></span><span lang="en">ADVANCED DEEP LEARNING — RESEARCH</span></div>
+  <div class="nav-links mono">
+    <a href="#summary">الملخص</a>
+    <a href="#intro">المقدمة</a>
+    <a href="#compare">المقارنة</a>
+    <a href="#models">النماذج</a>
+    <a href="#cases">دراسات الحالة</a>
+    <a href="#challenges">التحديات</a>
+    <a href="#future">المستقبل</a>
+    <a href="#conclusion">الخاتمة</a>
+    <a href="#references">المراجع</a>
+  </div>
+</nav>
+
+<header class="hero" id="hero">
+  <canvas class="hero-canvas" id="heroCanvas" aria-hidden="true"></canvas>
+  <div class="hero-veil" aria-hidden="true"></div>
+  <div class="hero-content">
+    <div class="hero-eyebrow mono" lang="en"><span class="pulse-dot" aria-hidden="true"></span>ADVANCED DEEP LEARNING · RESEARCH REPORT</div>
+    <h1>الذكاء الاصطناعي والذكاء الاصطناعي التوليدي<span class="sub">في صناعة المدن الذكية</span></h1>
+    <p class="hero-tagline">بحث تطبيقي في توظيف التعلّم العميق التنبؤي والتوليدي لتحويل إدارة الحشود الضخمة من الاستجابة بعد الحادثة إلى استباقها قبل وقوعها.</p>
+    <div class="hero-meta">
+      <div class="meta-pill"><span class="k mono">اسم الطالب</span><span class="v">معاذ محمد وازن السلمي</span></div>
+      <div class="meta-pill"><span class="k mono">الرقم الجامعي</span><span class="v mono">444001669</span></div>
+      <div class="meta-pill"><span class="k mono">الصناعة المختارة</span><span class="v">المدن الذكية</span></div>
+      <div class="meta-pill"><span class="k mono">المشرف</span><span class="v">د. أحمد الهندي</span></div>
+    </div>
+  </div>
+  <a href="#summary" class="scroll-cue"><div class="mouse" aria-hidden="true"></div><span class="mono">مرّر للأسفل</span></a>
+</header>
+
+<main>
+<section id="summary" class="section">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow"><span class="num">٠١</span><span lang="en">EXECUTIVE SUMMARY</span></span>
+      <h2>الملخص التنفيذي</h2>
+    </div>
+    <div class="card card-accent-cyan reveal">
+      <div class="prose" style="font-size:1.08rem;">
+        <p>يُمثّل قطاع Smart Cities منظومة متكاملة، تدمج التقنية والبيانات لتحسين إدارة الفضاءات الحضرية والمواسم الضخمة. يُعد Crowd Management أحد أهم تطبيقات هذه المنظومة، خصوصاً في سياقات كموسم الحج وRiyadh Season، حيث تتجمع ملايين الأفراد في مساحات محدودة، كما تُظهر تجربة SDAIA في الحرمين الشريفين. يستعرض هذا البحث ثلاثة تطبيقات جوهرية للذكاء الاصطناعي في هذا المجال. يشمل ذلك Predictive Routing، الذي يُعيد توجيه حركة المشاة والمركبات آلياً، استناداً إلى بيانات الكثافة الحية. يشمل أيضاً Live Crowd Counting، الذي يقدّر كثافة الحشود من بث الفيديو المباشر، عبر نماذج CNNs و Transformers. يشمل أخيراً توليد بيانات تدريب اصطناعية (Generative Synthetic Data) عبر GANs و Diffusion Models، لمحاكاة سيناريوهات التدافع النادرة والخطرة. يخلص البحث إلى نتيجة محورية واحدة. تنتقل إدارة الحشود، بفعل هذه التقنيات، من نموذج Reactive يرصد الأزمة بعد وقوعها، إلى نموذج Proactive يستبقها قبل تشكّلها، ضمن إطار ناشئ يُعرف بـ Cognitive Cities. يتقاطع هذا التحول بشكل مباشر وعميق مع غايات رؤية المملكة 2030. يأتي في صدارة ذلك برنامج Pilgrim Experience Program، الذي يضع سلامة الحجاج وجودة تجربتهم في صميم أولوياته الاستراتيجية المعلنة.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<!--SECTION-1-->
+<section id="intro" class="section">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow"><span class="num">٠٢</span><span lang="en">INTRODUCTION</span></span>
+      <h2>المقدمة</h2>
+    </div>
+
+    <div class="card reveal">
+      <h3 class="sub-title"><span class="sub-num mono">٢.١</span>نبذة عن الصناعة</h3>
+      <div class="prose">
+        <p>مؤسسة MarketsAndMarkets يشهد قطاع Smart Cities نمواً عالمياً متسارعاً. قدّرت مؤسسة MarketsAndMarkets حجم هذا السوق بنحو 699.7 مليار دولار أمريكي في عام 2025. ومن المتوقع أن يصل هذا الحجم إلى 1,445.6 مليار دولار بحلول عام 2030. يعكس هذا معدل نمو سنوي مركب يبلغ 15.6% (MarketsAndMarkets, 2025). يمثّل Crowd Management أحد أهم المحاور الفرعية لهذا السوق. فهو يرتبط مباشرة بالسلامة العامة. ويرتبط أيضاً بكفاءة تشغيل الفعاليات الكبرى والمواسم الدينية. تتنافس شركات تقنية عالمية كبرى على تطوير حلول هذا المجال. من أبرزها Huawei و IBM (MarketsAndMarkets, 2025). يؤكد هذا التنافس الأهمية الاستراتيجية المتصاعدة لهذه التقنية.</p>
+        <p>تحتل إدارة الحشود مكانة استثنائية في السياق السعودي. فموسم الحج يستقبل سنوياً واحدة من أكبر التجمعات البشرية في العالم. بلغ عدد الحجاج في موسم 1446هـ (2025) نحو 1,673,230 حاجاً وحاجة (GASTAT, 2025). كذلك يجتذب Riyadh Season أعداداً ضخمة من الزوار على مدار أشهر متتالية. سجلت نسخته السادسة أكثر من 17 مليون زائر (GEA, 2026). يفرض هذا التزاحم الكثيف في مساحات محدودة تحديات تشغيلية وأمنية بالغة التعقيد. اعتمدت الجهات المنظمة، قبل دخول الذكاء الاصطناعي، على أساليب تقليدية محدودة الفعالية. شمل ذلك العد اليدوي التقريبي للحشود. شمل ذلك أيضاً مراقبة بشرية مباشرة لعشرات شاشات الكاميرات في غرف العمليات. أثبتت هذه الأساليب قصورها الواضح أمام الكثافة الفعلية للحشود. شهدت أحداث تاريخية متكررة على هذا القصور، أبرزها تدافع منى عام 2015، الذي أسفر عن آلاف الوفيات. مثّل هذا القصور التاريخي الدافع الأساسي للبحث عن حلول تقنية أكثر تطوراً.</p>
+      </div>
+    </div>
+
+    <div class="card reveal">
+      <h3 class="sub-title"><span class="sub-num mono">٢.٢</span>لماذا الذكاء الاصطناعي مهم لهذه الصناعة؟</h3>
+      <div class="prose">
+        <p>تنبع الحاجة الجوهرية للذكاء الاصطناعي في هذا القطاع من ثلاثة عوامل متلازمة. يتمثل العامل الأول في الحجم الهائل من Video Data. تُولّد آلاف الكاميرات بثاً مستمراً ومتزامناً من مواقع متعددة. يستحيل على فريق بشري معالجة هذا الكم من البيانات بدقة وفي الوقت المناسب. يتمثل العامل الثاني في التعقيد البالغ لـ Crowd Dynamics. لا يتصرف الحشد كمجموع أفراد منفصلين، بل يتصرف كنظام واحد متكامل. تتغير سلوكياته بشكل غير خطي عند تجاوز عتبات كثافة معينة. يتطلب فهم هذا السلوك نماذج حاسوبية متقدمة، تتجاوز قدرة التحليل البشري المباشر. يتمثل العامل الثالث في ضرورة اتخاذ قرارات في أجزاء من الثانية. لا تحتمل سيناريوهات التدافع تأخير القرار لدقائق أو حتى لثوانٍ معدودة. يستلزم هذا بنية Edge Computing، قادرة على الاستدلال الفوري قريباً من مصدر البيانات. فقد انخفض زمن استجابة هذه النماذج من ثوانٍ إلى أجزاء من الألف من الثانية خلال العقد الأخير. يفتح هذا الانخفاض الباب أمام التحكم الفعلي في الوقت الحقيقي (McKinsey & Company, 2026).</p>
+      </div>
+    </div>
+
+    <div class="card reveal">
+      <h3 class="sub-title"><span class="sub-num mono">٢.٣</span>هدف البحث ومنهجيته</h3>
+      <div class="prose">
+        <p>يهدف هذا البحث إلى تحليل الدور التحويلي لـ Deep Learning في إدارة الحشود الضخمة. يركّز التحليل على نموذجين متكاملين: Predictive AI و Generative AI. يسعى البحث للإجابة عن سؤال محوري واحد: كيف يمكن لهذين النموذجين تحويل إدارة الحشود من نهج Reactive إلى نهج Proactive؟ وكيف يمهّد هذا التحول الطريق نحو مفهوم Cognitive Cities؟ يتبنى البحث منهجية تحليلية وصفية، تعتمد على دراسة حالات واقعية وموثقة. تشمل هذه الحالات تجربة SDAIA في إدارة موسم الحج، وتجارب شركات عالمية رائدة مثل Huawei. يربط البحث، في خاتمته، بين هذه التطبيقات العملية الحالية وبين الأفق المستقبلي لمدن قادرة على الإدراك والتصرف الذاتي.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<!--SECTION-2-->
+<section id="compare" class="section">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow"><span class="num">٠٣</span><span lang="en">PREDICTIVE VS GENERATIVE</span></span>
+      <h2>الذكاء الاصطناعي التقليدي مقابل التوليدي في هذه الصناعة</h2>
+    </div>
+
+    <div class="card card-accent-cyan reveal">
+      <h3 class="sub-title"><span class="sub-num mono">٣.١</span>تطبيقات الذكاء الاصطناعي التقليدي (Predictive AI)</h3>
+      <div class="prose">
+        <p>يعتمد Predictive AI على تحليل البيانات الحالية والتاريخية. يهدف هذا النموذج إلى التنبؤ بحالة مستقبلية قريبة، أو تصنيف حالة راهنة بدقة. يُعد العد الحي للحشود (Live CCTV Crowd Counting) من أبرز تطبيقاته العملية. تعالج نماذج مثل CNNs و Transformers بث الفيديو المباشر من شبكات الكاميرات. تُنتج هذه النماذج خرائط كثافة (Density Maps) تقدّر عدد الأفراد في كل منطقة بدقة عالية. يوفر هذا التقدير الفوري معلومات حيوية لمتخذي القرار داخل غرف العمليات.</p>
+        <p>يمثّل Dynamic Routing تطبيقاً رئيسياً آخر لـ Predictive AI. تستخدم هذه الأنظمة بيانات الكثافة الحية لإعادة توجيه تدفقات المشاة والمركبات في الوقت الفعلي. يقدّم نظام Baseer التابع لـ SDAIA مثالاً تطبيقياً واضحاً على ذلك. يحلل النظام بيانات الكثافة المستمدة من آلاف الكاميرات والمستشعرات الحرارية في الحرمين الشريفين (SDAIA, 2025). يتخذ النظام، بناءً على هذا التحليل، قرارات آلية بفتح أو إغلاق مسارات معينة. وفقاً لتقرير حديث، تُنفَّذ نحو 70% من قرارات إدارة الحشود في موسم الحج بهذه الطريقة الآلية حالياً (Hajj Research Institute, 2026). يقلّص هذا التحول زمن الاستجابة بشكل جوهري، مقارنةً بالاعتماد الكامل على التقدير البشري.</p>
+      </div>
+    </div>
+
+    <div class="card card-accent-violet reveal">
+      <h3 class="sub-title"><span class="sub-num mono violet">٣.٢</span>تطبيقات الذكاء الاصطناعي التوليدي (Generative AI)</h3>
+      <div class="prose">
+        <p>يختلف Generative AI جذرياً عن النموذج التنبؤي في وظيفته الأساسية. فهو لا يحلل بيانات قائمة فحسب، بل يُنشئ بيانات أو سيناريوهات جديدة لم تكن موجودة من قبل. يحل هذا النموذج مشكلة جوهرية تواجه تدريب أنظمة الكشف عن الكوارث. فحوادث التدافع، لحسن الحظ، نادرة الحدوث نسبياً. يحدّ هذا النقص الطبيعي في البيانات الحقيقية من دقة نماذج الكشف التقليدية القائمة على Predictive AI وحدها.</p>
+        <p>تُستخدم تقنيات GANs و Diffusion Models لمعالجة هذه الفجوة. تُولّد هذه التقنيات بيانات تدريب اصطناعية، تُحاكي سيناريوهات حشدية خطرة ونادرة. أظهرت دراسة سابقة إمكانية استخدام GANs لتوليد سلوكيات حشدية غير طبيعية، تستند إلى بيانات فعلية من حشود الحج (Alafif et al., 2021). يُستخدم Generative AI أيضاً في بناء Digital Twins. يُنشئ Digital Twin نسخة افتراضية متطابقة لموقع فعلي، كجسر الجمرات أو أحد مواقع Riyadh Season. تُحاكى داخل هذه النسخة الافتراضية سيناريوهات تدافع محتملة، قبل وقوعها على الأرض. يسمح ذلك باختبار استراتيجيات التدخل الأمني افتراضياً. تستخدم مدن مثل Helsinki و Singapore هذا الأسلوب لمحاكاة موجات الازدحام، وتختبر التدخلات افتراضياً قبل التنفيذ الفعلي (McKinsey & Company, 2026).</p>
+      </div>
+    </div>
+
+    <h3 class="sub-title compare-title reveal"><span class="sub-num mono">٣.٣</span>مقارنة موجزة</h3>
+    <div class="compare-grid reveal">
+      <div class="compare-card cyan">
+        <span class="tag" lang="en">PREDICTIVE AI</span>
+        <h3>الذكاء الاصطناعي التنبؤي</h3>
+        <div class="compare-row">
+          <span class="label">الهدف الأساسي</span>
+          <span class="value">تحليل بيانات قائمة، والتنبؤ بحالة حالية أو قريبة</span>
+        </div>
+        <div class="compare-row">
+          <span class="label">أمثلة على المهام</span>
+          <span class="value">Live CCTV Crowd Counting، Dynamic Routing، Anomaly Detection</span>
+        </div>
+        <div class="compare-row">
+          <span class="label">النماذج المستخدمة</span>
+          <span class="value">CNNs، Transformers</span>
+        </div>
+        <div class="compare-row">
+          <span class="label">أبرز الشركات في صناعتك</span>
+          <span class="value">SDAIA — Baseer, Sawaher (SDAIA, 2025)؛ Huawei — Safe City (Huawei, 2017)</span>
+        </div>
+      </div>
+      <div class="compare-card violet">
+        <span class="tag" lang="en">GENERATIVE AI</span>
+        <h3>الذكاء الاصطناعي التوليدي</h3>
+        <div class="compare-row">
+          <span class="label">الهدف الأساسي</span>
+          <span class="value">إنشاء بيانات أو سيناريوهات جديدة غير موجودة أصلاً</span>
+        </div>
+        <div class="compare-row">
+          <span class="label">أمثلة على المهام</span>
+          <span class="value">توليد بيانات تدريب لحوادث التدافع النادرة، بناء Digital Twins لمحاكاة الازدحام</span>
+        </div>
+        <div class="compare-row">
+          <span class="label">النماذج المستخدمة</span>
+          <span class="value">GANs، Diffusion Models</span>
+        </div>
+        <div class="compare-row">
+          <span class="label">أبرز الشركات في صناعتك</span>
+          <span class="value">Helsinki، Singapore — تطبيقات Digital Twin (McKinsey & Company, 2026)؛ فرق بحثية أكاديمية متخصصة بالـ GANs (Alafif et al., 2021)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!--SECTION-3-->
+<section id="models" class="section">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow"><span class="num">٠٤</span><span lang="en">DEEP LEARNING MODELS</span></span>
+      <h2>النماذج التقنية (Deep Learning Models) المستخدمة</h2>
+    </div>
+
+    <div class="card card-accent-cyan reveal">
+      <span class="model-chip cyan" lang="en">CNNs</span>
+      <h3 class="sub-title"><span class="sub-num mono">٤.١</span>النموذج الأول</h3>
+      <div class="prose">
+        <p>تعتمد CNNs على مبدأ Density-Map Regression لحساب أعداد الحشود. تستخرج طبقات الالتفاف (Convolutional Layers) ميزات محلية من كل منطقة في الصورة. تُحوّل هذه الميزات إلى خريطة كثافة مستمرة (Density Map). يمثّل مجموع قيم هذه الخريطة التقدير الكلي لعدد الأفراد. هيمنت CNNs على هذا المجال لسنوات عديدة. يُعد نموذج Multi-Column CNN (MCNN) أحد أبرز الأمثلة التاريخية على هذا النهج (Zhang et al., 2016). يعالج هذا النموذج الصورة عبر أعمدة شبكية متعددة، بأحجام مرشحات مختلفة. يتعامل بذلك مع التباين الكبير في حجم الرؤوس بين الصور، تبعاً للمسافة من الكاميرا.</p>
+        <p>تواجه CNNs قيداً جوهرياً، رغم هذه الهيمنة التاريخية. يتمثل هذا القيد في محدودية الحقل الاستقبالي (Limited Receptive Field). تعالج طبقة الالتفاف منطقة محلية صغيرة من الصورة في كل مرة. يصعب على النموذج، نتيجة لذلك، بناء فهم شامل للسياق العام للمشهد. يحدّ هذا القيد من قدرة النموذج على التعامل مع التغيرات الكبيرة في الكثافة بين أجزاء الصورة المختلفة.</p>
+      </div>
+    </div>
+
+    <div class="card card-accent-cyan reveal">
+      <span class="model-chip cyan" lang="en">Transformers &amp; LLMs</span>
+      <h3 class="sub-title"><span class="sub-num mono">٤.٢</span>النموذج الثاني</h3>
+      <div class="prose">
+        <p>تتجاوز Transformers هذا القيد عبر آلية Global Self-Attention. تتيح هذه الآلية لكل جزء (Patch) في الصورة التفاعل المباشر مع جميع الأجزاء الأخرى. يبني النموذج بذلك فهماً شاملاً للمشهد الكلي، بدلاً من فهم محلي مجزأ. شهد هذا الاتجاه تطورات سريعة ومتلاحقة خلال الأعوام الأخيرة.</p>
+        <p>قدّم Gramformer، في يناير 2024، حلاً لمشكلة تجانس الانتباه (Attention Homogenization). يحدث هذا التجانس عندما تتشابه خرائط الانتباه بين معظم الأجزاء، نتيجة لتشابه الأنماط داخل الحشد. استخدم Gramformer رسماً بيانياً (Graph) لتعديل الانتباه باتجاه التباين، مما حسّن من تمييز الأجزاء المختلفة (Lin et al., 2024). توسّع CountFormer، في يوليو 2024، ليعالج إشكالية أخرى مختلفة. عالج هذا النموذج مشكلة العد عبر كاميرات متعددة الزوايا (Multi-View). رفع النموذج الميزات من مستوى الصورة الثنائية إلى تمثيل حجمي ثلاثي الأبعاد (3D Volume). يتيح ذلك تجميع معلومات من زوايا تصوير مختلفة في تمثيل واحد متكامل للمشهد، وهو أمر ذو قيمة مباشرة لشبكات كاميرات الحرمين الشريفين (Mo et al., 2024). قدّم RCCFormer، في أبريل 2025، تحسيناً مزدوجاً. عالج هذا النموذج كبت الخلفية (Background Suppression) والتباين في المقاييس (Scale Variation) معاً. استخدم النموذج وحدة دمج ميزات متعددة المستويات (Multi-level Feature Fusion Module)، وكتلة انتباه مدمجة بالتفاصيل (Detail-Embedded Attention Block) لتحقيق ذلك (Liu et al., 2025).</p>
+      </div>
+      <div class="paper-chips">
+        <div class="paper-chip"><span class="pname" lang="en">Gramformer</span><span class="pdate">يناير ٢٠٢٤</span></div>
+        <div class="paper-chip"><span class="pname" lang="en">CountFormer</span><span class="pdate">يوليو ٢٠٢٤</span></div>
+        <div class="paper-chip"><span class="pname" lang="en">RCCFormer</span><span class="pdate">أبريل ٢٠٢٥</span></div>
+      </div>
+      <div class="prose">
+        <p>تلعب LLMs دوراً مختلفاً ومكمّلاً في هذا السياق. لا تُستخدم LLMs لمعالجة الصور مباشرة. تُستخدم، بدلاً من ذلك، لمعالجة الطبقة النصية والصوتية للنظام. تُلخّص LLMs سجلات بيانات IoT الضخمة لمشغلي غرف العمليات. تُحوّل بذلك آلاف التنبيهات المتفرقة إلى ملخصات قابلة للفهم السريع. تُقدّم LLMs أيضاً التوجيه الصوتي متعدد اللغات للحجاج والزوار. يخدم ذلك التنوع الثقافي واللغوي الكبير في موسم الحج.</p>
+      </div>
+    </div>
+
+    <div class="card card-accent-violet reveal">
+      <span class="model-chip violet" lang="en">GANs &amp; Diffusion Models</span>
+      <h3 class="sub-title"><span class="sub-num mono violet">٤.٣</span>النموذج الثالث</h3>
+      <div class="prose">
+        <p>تواجه نماذج الكشف عن الكوارث مشكلة جوهرية، تُعرف باسم Class Imbalance. تتوفر بيانات وفيرة عن الحشود الطبيعية والآمنة. تندر، في المقابل، بيانات الحوادث الخطرة كالتدافع والانهيار الحشدي. يصعب على أي نموذج تعلّم تمييز الحالات النادرة، دون عدد كافٍ من الأمثلة التدريبية. تُقدّم GANs و Diffusion Models حلاً مباشراً لهذه المشكلة. تتعلم هذه النماذج التوزيع الإحصائي للبيانات الحقيقية المتاحة. تُولّد، بناءً على ذلك، أمثلة اصطناعية جديدة، تُحاكي خصائص السيناريوهات النادرة. يُعد ذلك بديلاً أكثر أماناً وأخلاقية، من انتظار وقوع حوادث حقيقية لجمع بيانات تدريب كافية.</p>
+        <p>يُمثّل البحث الذي أجراه Alafif وزملاؤه سابقة تطبيقية مباشرة لهذا النهج، في سياق الحج تحديداً. استخدم هذا البحث GANs لتوليد سلوكيات حشدية غير طبيعية. استند هذا التوليد إلى بيانات فعلية من حشود الحج الحقيقية (Alafif et al., 2021). أثبتت هذه الدراسة جدوى استخدام البيانات الاصطناعية، في تدريب نماذج الكشف عن السلوك الشاذ بدقة أعلى. تُمثّل Diffusion Models، في الوقت الحالي، التوجه الأكثر تطوراً لمعالجة هذه المشكلة. تُحقق هذه النماذج جودة بصرية أعلى من GANs التقليدية في توليد البيانات الاصطناعية، رغم محدودية تطبيقها المباشر على بيانات الحشود حتى الآن.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<!--SECTION-4-->
+<section id="cases" class="section">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow"><span class="num">٠٥</span><span lang="en">REAL-WORLD CASE STUDIES</span></span>
+      <h2>حالات دراسية لشركات حقيقية</h2>
+    </div>
+
+    <div class="cases-grid">
+      <div class="card case-card card-accent-cyan reveal">
+        <span class="case-name" lang="en">٥.١ — SDAIA</span>
+        <h3>مراقبة كثافة الحجاج في الوقت الفعلي</h3>
+        <div class="case-field">
+          <span class="k">التطبيق</span>
+          <span class="v">مراقبة كثافة الحشود وحركة الحجاج في الوقت الفعلي.</span>
+        </div>
+        <div class="case-field">
+          <span class="k">النموذج / التقنية المستخدمة</span>
+          <span class="v">منصتا Baseer و Sawaher، اللتان تستخدمان Computer Vision لتحليل البث الحي من آلاف الكاميرات والمستشعرات الحرارية. تُغذّي هاتان المنصتان مركز Smart Makkah Operations Center (Smart MOC) ببيانات لحظية مستمرة (SDAIA, 2025). تُستكمل هذه التجربة الوطنية، في سياق Riyadh Season، بمزوّد تقني خاص هو AvidBeam. استُخدمت تقنيات AvidBeam لتأمين أكثر من 450,000 زائر في فعالية MDLBeast Soundstorm (AvidBeam, 2025).</span>
+        </div>
+        <div class="case-field">
+          <span class="k">النتائج المحققة</span>
+          <span class="v">توجيه حركة المرور في الوقت الفعلي، وتمكين التدخل الأمني الاستباقي قبل تطور الحالات الخطرة.</span>
+        </div>
+        <div class="case-field">
+          <span class="k">المصدر</span>
+          <span class="v source">(SDAIA, 2025)</span>
+        </div>
+      </div>
+
+      <div class="card case-card card-accent-cyan reveal reveal-d1">
+        <span class="case-name" lang="en">٥.٢ — Huawei</span>
+        <h3>توصيف كثافة الحشود في المدن الآمنة</h3>
+        <div class="case-field">
+          <span class="k">التطبيق</span>
+          <span class="v">المراقبة الحضرية، وتوصيف كثافة الحشود (Crowd Density Profiling).</span>
+        </div>
+        <div class="case-field">
+          <span class="k">النموذج / التقنية المستخدمة</span>
+          <span class="v">حل Huawei Video Cloud Solution، المصمم خصيصاً لتطبيقات Safe Cities. يدعم هذا الحل التحليل الذكي للفيديو، ومراقبة الحشود، وتوجيه حركة المرور (Huawei, 2017).</span>
+        </div>
+        <div class="case-field">
+          <span class="k">النتائج المحققة</span>
+          <span class="v">حصلت Huawei على تقدير من مؤسسة Frost & Sullivan، بصفتها شركة رائدة في سوق تحليلات الفيديو للمدن الآمنة.</span>
+        </div>
+        <div class="case-field">
+          <span class="k">المصدر</span>
+          <span class="v source">(Huawei, 2017)</span>
+        </div>
+      </div>
+
+      <div class="card case-card card-accent-cyan reveal reveal-d2">
+        <span class="case-name" lang="en">٥.٣ — IBM</span>
+        <h3>تنسيق الاستجابة في الطوارئ الكبرى</h3>
+        <div class="case-field">
+          <span class="k">التطبيق</span>
+          <span class="v">الأمن العام (Public Safety)، وتنسيق الاستجابة في الفعاليات والطوارئ الكبرى.</span>
+        </div>
+        <div class="case-field">
+          <span class="k">النموذج / التقنية المستخدمة</span>
+          <span class="v">منصة Intelligent Operations Center (IOC)، وتضم وحدة Video & Operations Analytics. تُتيح هذه الوحدة المراقبة القائمة على الأحداث (Event-Based Surveillance)، والتحليل الآلي للفيديو، والتنبيهات الفورية، عبر لوحة تحكم موحدة تجمع الأقسام الحكومية المختلفة (IBM, 2014).</span>
+        </div>
+        <div class="case-field">
+          <span class="k">النتائج المحققة</span>
+          <span class="v">توحيد الرؤية التشغيلية بين الجهات الحكومية المختلفة. تمكين استجابة منسقة وأسرع في إدارة الفعاليات الكبرى والطوارئ، عبر تقليص الفجوة الزمنية بين رصد الحدث واتخاذ القرار.</span>
+        </div>
+        <div class="case-field">
+          <span class="k">المصدر</span>
+          <span class="v source">(IBM, 2014)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!--SECTION-5-->
+<section id="challenges" class="section">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow"><span class="num">٠٦</span><span lang="en">CHALLENGES &amp; RISKS</span></span>
+      <h2>التحديات والمخاطر</h2>
+    </div>
+
+    <div class="card reveal">
+      <span class="risk-tag" lang="en">TECHNICAL</span>
+      <h3 class="sub-title"><span class="sub-num mono">٦.١</span>التحديات التقنية</h3>
+      <div class="prose">
+        <p>يُمثّل Edge Computing ضرورة تقنية، لا خياراً ثانوياً، في سياق إدارة الحشود. تتطلب سيناريوهات السلامة الحرجة قرارات في أجزاء من الثانية. لا يحتمل إرسال البيانات إلى سحابة بعيدة، ثم انتظار استجابتها، هذا الهامش الزمني الضيق. ينتج عن هذا المسار زمن استجابة (Latency) غير مقبول، في سياقات تتعلق بالحياة والموت. تُعالج بنية Edge Computing البيانات قريباً من مصدرها مباشرة. يُقلّص ذلك زمن الاستجابة من ثوانٍ إلى أجزاء من الألف من الثانية (McKinsey & Company, 2026). يتيح هذا الانخفاض تدخلاً فعلياً، قبل تطور الموقف إلى أزمة كاملة.</p>
+        <p>تضيف الظروف البيئية المعقدة تحدياً تقنياً إضافياً ومستقلاً. تتعرض كاميرات المراقبة في موسم الحج لحرارة شديدة. سجل موسم 2024 كارثة حرارية فعلية. أسفرت هذه الكارثة عن أكثر من 1,100 حالة وفاة بين الحجاج، وفقاً لتقارير وزارة الصحة السعودية (Ministry of Health, 2024). تؤثر الحرارة المرتفعة على كفاءة المعدات والمستشعرات نفسها، لا على الحجاج فقط. يُضاف إلى ذلك الغبار، الذي يقلّل من وضوح الرؤية البصرية في عدسات الكاميرات. يُمثّل التشويش البصري الناتج عن الازدحام الكثيف (Visual Occlusion) تحدياً تقنياً ثالثاً. يحجب الأفراد المتراصون رؤية بعضهم البعض، جزئياً، عن عدسة الكاميرا. صُمّمت نماذج مثل RCCFormer خصيصاً لمواجهة هذا التحدي، عبر وحدات كبت الخلفية ودمج الميزات متعددة المستويات (Liu et al., 2025).</p>
+      </div>
+    </div>
+
+    <div class="card reveal">
+      <span class="risk-tag" lang="en">ETHICAL &amp; SOCIAL</span>
+      <h3 class="sub-title"><span class="sub-num mono">٦.٢</span>التحديات الأخلاقية والاجتماعية</h3>
+      <div class="prose">
+        <p>تطرح تقنيات Biometric و Facial Recognition معضلة أخلاقية حقيقية. تُطبّق السلطات السعودية هذه التقنيات بشكل كامل على جميع الحجاج الدوليين، لأغراض التسجيل والتحقق من الهوية (SDAIA, 2025). يُحسّن هذا التطبيق من الأمن التشغيلي. يُسهّل أيضاً عمليات التوجيه والإنقاذ السريع. يخلق هذا التطبيق، في الوقت ذاته، توتراً حقيقياً مع خصوصية الفرد.</p>
+        <p>يتسم هذا التوتر بحساسية خاصة في سياق الحج. فالحج رحلة روحية، يسعى فيها الحاج للتقرب من الله، بعيداً عن الانشغالات الدنيوية. قد يشعر بعض الحجاج بعدم الارتياح، عند معرفتهم بخضوعهم لمراقبة بصرية مستمرة، خلال لحظاتهم الأكثر خصوصية وروحانية. تتأثر ثقة الجمهور بهذه التقنيات بعامل واحد جوهري. يتمثل هذا العامل في شفافية الجهات المنظمة، حول كيفية جمع هذه البيانات واستخدامها وحذفها لاحقاً. يتطلب نشر هذه التقنيات في الحج، إذن، توازناً دقيقاً. يجب أن يوازن هذا النشر بين الحفاظ على سلامة الحجاج، واحترام قدسية وخصوصية تجربتهم الروحية.</p>
+      </div>
+    </div>
+
+    <div class="card reveal">
+      <span class="risk-tag" lang="en">REGULATORY &amp; LEGAL</span>
+      <h3 class="sub-title"><span class="sub-num mono">٦.٣</span>التحديات التنظيمية والقانونية</h3>
+      <div class="prose">
+        <p>يتطلب التوسع في استخدام الذكاء الاصطناعي، داخل الفضاءات العامة، حوكمة بيانات صارمة (Strict Data Governance). يجب أن تُحدّد هذه الحوكمة بوضوح، الجهة المسؤولة عن البيانات، ومدة الاحتفاظ بها، وحدود استخدامها المسموحة.</p>
+        <p>تتعامل التشريعات العالمية مع هذه القضية بشكل متفاوت. صنّف EU AI Act أنظمة التعرف البيومتري الفوري عن بُعد (Real-Time Remote Biometric Identification)، في الفضاءات العامة، ضمن الفئة المحظورة من حيث المبدأ. استثنى هذا التصنيف حالات محدودة جداً، كالبحث عن الأشخاص المفقودين، أو منع تهديد وشيك للحياة (European Parliament, 2024). اعتُبرت تطبيقات التصنيف البيومتري الأخرى، التي لا تستوفي شروط الحظر، ضمن فئة المخاطر المرتفعة (High-Risk)، الخاضعة لرقابة مشددة.</p>
+        <p>تُنظّم المملكة العربية السعودية هذا المجال عبر نظام حماية البيانات الشخصية (PDPL)، الصادر بالمرسوم الملكي م/19 لعام 2021. دخل هذا النظام حيز التنفيذ الكامل في 14 سبتمبر 2024 (SDAIA, 2024). تتولى SDAIA نفسها مهمة الإشراف على تطبيق هذا النظام. يمنح PDPL الأفراد حقاً صريحاً في الاعتراض على القرارات المعتمدة كلياً على معالجة آلية، دون أي تدخل بشري. يحمل هذا الحق دلالة مباشرة لإدارة الحشود، حيث تُنفَّذ قرارات إغلاق المسارات وتوجيه الحركة آلياً بشكل متزايد. يفرض هذا التقاطع، بين دور SDAIA كمطوّر لتقنيات المراقبة، ودورها كجهة تنظيمية للخصوصية في الوقت نفسه، سؤالاً تحليلياً مهماً حول استقلالية الحوكمة المؤسسية.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<!--SECTION-6-->
+<section id="future" class="section">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow"><span class="num">٠٧</span><span lang="en">FIVE-YEAR HORIZON</span></span>
+      <h2>المستقبل المتوقع خلال ٥ سنوات</h2>
+    </div>
+
+    <div class="card reveal">
+      <div class="prose">
+        <p>يتجه أفق إدارة الحشود، خلال السنوات الخمس القادمة، نحو تحوّل جوهري في الفلسفة التشغيلية. يكتفي Smart City التقليدي برصد الحدث، ورفع تقرير عنه (Reactive/Observational). يذهب Cognitive City إلى ما هو أبعد من ذلك. يستشعر Cognitive City الحدث، ويُعالجه، ويتصرف تجاهه بشكل ذاتي ومستمر (Proactive/Autonomous)، ضمن حدود محكومة مسبقاً.</p>
+      </div>
+
+      <div class="ladder" aria-hidden="false">
+        <div class="ladder-track" aria-hidden="true"></div>
+        <div class="ladder-stage stage-1">
+          <span class="node mono">١</span>
+          <h4>الوعي <span class="en mono" lang="en">Awareness</span></h4>
+          <p>تنتشر فيها أجهزة الاستشعار، وتُجمع البيانات، مع أتمتة محدودة جداً للعمليات.</p>
+        </div>
+        <div class="ladder-stage stage-2">
+          <span class="node mono">٢</span>
+          <h4>تحكم تنبؤي <span class="en mono" lang="en">Predictive Control</span></h4>
+          <p>تُستخدم فيها Digital Twins، وتُطبّق تعديلات شبه ذاتية على حركة المرور والمرافق.</p>
+        </div>
+        <div class="ladder-stage stage-3">
+          <span class="node mono">٣</span>
+          <h4>استقلالية مشروطة <span class="en mono" lang="en">Conditional Autonomy</span></h4>
+          <p>تُنفَّذ القرارات تلقائياً في هذه المرحلة، ضمن سياقات محددة وقابلة للعكس فقط.</p>
+        </div>
+      </div>
+
+      <div class="prose" style="margin-top:38px;">
+        <p>يصف سُلّم النضج، الذي طرحته McKinsey & Company، هذا التحول عبر ثلاث مراحل متتالية. تتسم المرحلة الأولى بالوعي (Awareness). تنتشر فيها أجهزة الاستشعار، وتُجمع البيانات، مع أتمتة محدودة جداً للعمليات. تُقدّم المرحلة الثانية تحكماً تنبؤياً (Predictive Control). تُستخدم فيها Digital Twins، وتُطبّق تعديلات شبه ذاتية على حركة المرور والمرافق. تصل المرحلة الثالثة إلى استقلالية مشروطة (Conditional Autonomy). تُنفَّذ القرارات تلقائياً في هذه المرحلة، ضمن سياقات محددة وقابلة للعكس فقط (McKinsey & Company, 2026).</p>
+        <p>يمكن توقّع موقع إدارة الحشود السعودية، تحديداً، ضمن هذا السُلّم خلال الأعوام الخمسة المقبلة. ستُصبح قرارات توجيه الحركة (Routing) مؤتمتة بالكامل تقريباً. يُمثّل هذا امتداداً طبيعياً لمعدل الأتمتة الحالي، البالغ نحو 70% (Hajj Research Institute, 2026). سيبقى الإنسان، في المقابل، حاضراً وأساسياً في حالة واحدة محددة بدقة. سيبقى القرار البشري ضرورياً في قرارات الإخلاء الشامل (Full Evacuation)، ذات المخاطر المرتفعة وغير القابلة للعكس. يعكس هذا التمييز مبدأً جوهرياً، في تصميم الأنظمة المستقلة. تُمنح الأتمتة الكاملة للقرارات القابلة للعكس فقط. يُحتفظ بالحكم البشري للقرارات التي لا تحتمل الخطأ.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<!--SECTION-7-->
+<section id="conclusion" class="section">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow"><span class="num">٠٨</span><span lang="en">CONCLUSION</span></span>
+      <h2>الخاتمة</h2>
+    </div>
+
+    <div class="card reveal">
+      <div class="prose">
+        <p>يُحدث Deep Learning تحوّلاً جوهرياً في فلسفة إدارة الحشود الضخمة. تنتقل هذه الإدارة من نموذج Reactive، يعتمد على رد الفعل بعد وقوع الحادثة. تنتقل إلى نموذج Proactive، يستبق الأزمة قبل تشكّلها. مكّنت CNNs و Transformers من رصد الكثافة، وتوجيه الحركة في الوقت الفعلي. أتاحت GANs و Digital Twins محاكاة السيناريوهات الخطرة، قبل وقوعها على الأرض. شكّلت هذه التقنيات، مجتمعة، الأساس التقني لمفهوم Cognitive Cities الناشئ.</p>
+      </div>
+
+      <p class="pull-quote">لا يُمثّل تطبيق الذكاء الاصطناعي، في إدارة الحشود الضخمة، كماليةً تقنية. يُمثّل ضرورة لحفظ الحياة الإنسانية، بشكل مباشر وعاجل.</p>
+
+      <div class="prose">
+        <p>يخرج هذا البحث بخلاصة تتجاوز الجانب التقني المحض. لا يُمثّل تطبيق الذكاء الاصطناعي، في إدارة الحشود الضخمة، كماليةً تقنية. يُمثّل ضرورة لحفظ الحياة الإنسانية، بشكل مباشر وعاجل. تشهد على ذلك ذاكرة حية لمآسٍ سابقة. أبرزها تدافع منى عام 2015، الذي أسفر عن آلاف الوفيات في لحظة واحدة. كل تحسّن في دقة رصد الكثافة يُترجم إلى حياة محتمل إنقاذها. كل ثانية تُكتسب في زمن الاستجابة، تُترجم إلى حياة محتمل إنقاذها أيضاً.</p>
+        <p>يتقاطع هذا الهدف بعمق مع غايات رؤية المملكة 2030. يضع Pilgrim Experience Program إدارة الحشود بالذكاء الاصطناعي في صميم أولوياته. يتضمن هذا البرنامج مبادرات صريحة، لاستخدام نماذج رياضية للتنبؤ بالازدحام، وتوجيه ذكي للحجاج والمركبات (Vision 2030, 2024). تتقاطع هذه الجهود أيضاً مع غايات Quality of Life Program، في سياق فعاليات ضخمة كـ Riyadh Season. يصبح حفظ سلامة ضيوف الرحمن، وتعزيز جودة حياة المواطن والزائر، وجهين لعملة واحدة بهذا المعنى. تتحقق هذه الغاية المزدوجة اليوم، بفضل قدرة الذكاء الاصطناعي على الرؤية والتصرف، بسرعة تتجاوز إدراك العين البشرية.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<!--SECTION-8-->
+<section id="references" class="section">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow"><span class="num">٠٩</span><span lang="en">REFERENCES</span></span>
+      <h2>المراجع</h2>
+    </div>
+
+    <div class="card reveal">
+      <div class="ref-group">
+        <h3>٩.١ الأوراق العلمية</h3>
+        <div class="ref-list">
+          <p class="ref-item" dir="ltr" lang="en">Alafif, T., Alzahrani, B., Cao, Y., Alotaibi, R., Barnawi, A., &amp; Chen, M. (2021). Generative adversarial network based abnormal behavior detection in massive crowd videos: A Hajj case study. <em>Journal of Ambient Intelligence and Humanized Computing</em>.</p>
+          <p class="ref-item" dir="ltr" lang="en">Lin, H., Ma, Z., Hong, X., Shangguan, Q., &amp; Meng, D. (2024). Gramformer: Learning crowd counting via graph-modulated transformer. <em>arXiv</em>. <a href="https://arxiv.org/abs/2401.03870" target="_blank" rel="noopener noreferrer">arxiv.org/abs/2401.03870</a></p>
+          <p class="ref-item" dir="ltr" lang="en">Liu, P., Li, H.-C., Lei, S., Liu, N., Feng, B., &amp; Wu, X. (2025). RCCFormer: A robust crowd counting network based on transformer. <em>arXiv</em>. <a href="https://arxiv.org/abs/2504.04935" target="_blank" rel="noopener noreferrer">arxiv.org/abs/2504.04935</a></p>
+          <p class="ref-item" dir="ltr" lang="en">Mo, H., et al. (2024). CountFormer: Multi-view crowd counting transformer. <em>arXiv</em>. <a href="https://arxiv.org/abs/2407.02047" target="_blank" rel="noopener noreferrer">arxiv.org/abs/2407.02047</a></p>
+          <p class="ref-item" dir="ltr" lang="en">Zhang, Y., Zhou, D., Chen, S., Gao, S., &amp; Ma, Y. (2016). Single-image crowd counting via multi-column convolutional neural network. <em>Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR)</em>. <a href="https://openaccess.thecvf.com/content_cvpr_2016/papers/Zhang_Single-Image_Crowd_Counting_CVPR_2016_paper.pdf" target="_blank" rel="noopener noreferrer">openaccess.thecvf.com/content_cvpr_2016</a></p>
+        </div>
+      </div>
+
+      <div class="ref-group">
+        <h3>٩.٢ التقارير الصناعية</h3>
+        <div class="ref-list">
+          <p class="ref-item" dir="ltr" lang="en">MarketsAndMarkets. (2025). <em>Smart cities market by focus area, geography, and technology — Global forecast to 2030</em>. <a href="https://www.marketsandmarkets.com/Market-Reports/smart-cities-market-542.html" target="_blank" rel="noopener noreferrer">marketsandmarkets.com/Market-Reports/smart-cities-market-542.html</a></p>
+          <p class="ref-item" dir="ltr" lang="en">McKinsey &amp; Company. (2026, March 6). <em>AI-native public infrastructure for smart cities</em> (C. Panda, H. Soller, &amp; S. Swain, Authors). <a href="https://www.mckinsey.com/capabilities/tech-and-ai/our-insights/tech-forward/how-ai-native-public-infrastructure-changes-how-cities-operate" target="_blank" rel="noopener noreferrer">mckinsey.com/.../how-ai-native-public-infrastructure-changes-how-cities-operate</a></p>
+        </div>
+      </div>
+
+      <div class="ref-group">
+        <h3>٩.٣ الأخبار والمقالات</h3>
+        <div class="ref-list">
+          <p class="ref-item" dir="ltr" lang="en">General Authority for Statistics [GASTAT]. (2025). <em>Total number of pilgrims performing Hajj 1446H (2025) reaches (1,673,230)</em>. <a href="https://www.stats.gov.sa/en/w/news/49" target="_blank" rel="noopener noreferrer">stats.gov.sa/en/w/news/49</a></p>
+          <p class="ref-item" dir="ltr" lang="en">General Entertainment Authority [GEA]. (2026, February 17). Turki Alalshikh announces Riyadh Season hits record 17 million visitors across its sixth edition. <em>Economy Middle East</em>. <a href="https://economymiddleeast.com/news/riyadh-season-hits-17-million-visitors-record/" target="_blank" rel="noopener noreferrer">economymiddleeast.com/news/riyadh-season-hits-17-million-visitors-record</a></p>
+          <p class="ref-item" dir="ltr" lang="en">European Parliament. (2024). <em>EU AI Act: First regulation on artificial intelligence</em>. <a href="https://www.europarl.europa.eu/topics/en/article/20230601STO93804/eu-ai-act-first-regulation-on-artificial-intelligence" target="_blank" rel="noopener noreferrer">europarl.europa.eu/.../eu-ai-act-first-regulation-on-artificial-intelligence</a></p>
+          <p class="ref-item" dir="ltr" lang="en">Hajj Research Institute. (2026, March). <em>Study on automated crowd-management decision-making during Hajj</em> [As reported in Arab News]. <a href="https://www.arabnews.com/node/2643840/engineering-peace-hajj-through-automated-management-systems" target="_blank" rel="noopener noreferrer">arabnews.com/node/2643840</a></p>
+          <p class="ref-item" dir="ltr" lang="en">Ministry of Health, Saudi Arabia. (2024). <em>Hajj 1445H pilgrim mortality statistics</em> [As reported in Arab News]. <a href="https://www.arabnews.com/node/2643840/engineering-peace-hajj-through-automated-management-systems" target="_blank" rel="noopener noreferrer">arabnews.com/node/2643840</a></p>
+          <p class="ref-item" dir="ltr" lang="en">Vision 2030. (2024). <em>Pilgrim Experience Program</em>. <a href="https://www.vision2030.gov.sa/en/explore/programs/pilgrim-experience-program" target="_blank" rel="noopener noreferrer">vision2030.gov.sa/en/explore/programs/pilgrim-experience-program</a></p>
+        </div>
+      </div>
+
+      <div class="ref-group">
+        <h3>٩.٤ المواقع الرسمية للشركات</h3>
+        <div class="ref-list">
+          <p class="ref-item" dir="ltr" lang="en">AvidBeam. (2025). <em>Crowd detection technology: Ensuring safety in public spaces</em>. <a href="https://www.avidbeam.com/crowd-detection-technology-ensuring-safety-in-public-spaces/" target="_blank" rel="noopener noreferrer">avidbeam.com/crowd-detection-technology-ensuring-safety-in-public-spaces</a></p>
+          <p class="ref-item" dir="ltr" lang="en">Huawei. (2017, September 5). <em>Huawei launches the first all-cloud, network-wide smart video cloud solution</em>. <a href="https://www.einpresswire.com/article/402161365/huawei-launches-the-first-all-cloud-network-wide-smart-video-cloud-solution" target="_blank" rel="noopener noreferrer">einpresswire.com/article/402161365</a></p>
+          <p class="ref-item" dir="ltr" lang="en">IBM. (2014). <em>Smarter cities platform</em> [Corporate presentation]. <a href="https://www.slideshare.net/ICGCat/smarter-cities-platform" target="_blank" rel="noopener noreferrer">slideshare.net/ICGCat/smarter-cities-platform</a></p>
+          <p class="ref-item" dir="ltr" lang="en">SDAIA. (2024). <em>Data protection law</em>. <a href="https://sdaia.gov.sa/en/Research/Pages/DataProtection.aspx" target="_blank" rel="noopener noreferrer">sdaia.gov.sa/en/Research/Pages/DataProtection.aspx</a></p>
+          <p class="ref-item" dir="ltr" lang="en">SDAIA. (2025, 2026). <em>How Saudi Arabia is using AI to transform the Hajj experience</em>. <a href="https://english.alarabiya.net/News/saudi-arabia/2026/05/23/how-saudi-arabia-is-using-ai-to-transform-the-hajj-experience" target="_blank" rel="noopener noreferrer">english.alarabiya.net/.../how-saudi-arabia-is-using-ai-to-transform-the-hajj-experience</a></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!--SECTION-9-->
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <p class="name">معاذ محمد وازن السلمي</p>
+    <p class="line2">الرقم الجامعي 444001669 · المدن الذكية · بإشراف د. أحمد الهندي</p>
+    <p class="tagline mono" lang="en">ADVANCED DEEP LEARNING — 16 / 06 / 2026</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---- progress bar ---- */
+  var bar = document.getElementById('progressBar');
+  function updateProgress(){
+    var h = document.documentElement;
+    var scrollTop = h.scrollTop || document.body.scrollTop;
+    var scrollHeight = (h.scrollHeight - h.clientHeight) || 1;
+    var pct = Math.min(100, Math.max(0, (scrollTop/scrollHeight)*100));
+    bar.style.width = pct + '%';
+  }
+  document.addEventListener('scroll', updateProgress, {passive:true});
+  updateProgress();
+
+  /* ---- nav background on scroll ---- */
+  var nav = document.getElementById('siteNav');
+  function updateNav(){
+    if(window.scrollY > 60){ nav.classList.add('is-scrolled'); }
+    else{ nav.classList.remove('is-scrolled'); }
+  }
+  document.addEventListener('scroll', updateNav, {passive:true});
+  updateNav();
+
+  /* ---- reveal on scroll ---- */
+  var revealEls = document.querySelectorAll('.reveal');
+  if('IntersectionObserver' in window && !reduceMotion){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(entry.isIntersecting){
+          entry.target.classList.add('is-visible');
+          io.unobserve(entry.target);
+        }
+      });
+    }, {threshold:0.12, rootMargin:'0px 0px -60px 0px'});
+    revealEls.forEach(function(el){ io.observe(el); });
+  } else {
+    revealEls.forEach(function(el){ el.classList.add('is-visible'); });
+  }
+
+  /* ---- smooth anchor scroll with nav offset ---- */
+  document.querySelectorAll('a[href^="#"]').forEach(function(link){
+    link.addEventListener('click', function(e){
+      var id = this.getAttribute('href');
+      if(!id || id.length < 2) return;
+      var target = document.querySelector(id);
+      if(!target) return;
+      e.preventDefault();
+      var offset = 84;
+      var top = target.getBoundingClientRect().top + window.pageYOffset - offset;
+      window.scrollTo({top:top, behavior: reduceMotion ? 'auto' : 'smooth'});
+    });
+  });
+
+  /* ---- hero particle field: live "crowd density" visualization ---- */
+  var canvas = document.getElementById('heroCanvas');
+  if(canvas && canvas.getContext){
+    var ctx = canvas.getContext('2d');
+    var w, h, particles = [], pings = [];
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+    function resize(){
+      var rect = canvas.parentElement.getBoundingClientRect();
+      w = rect.width; h = rect.height;
+      canvas.width = Math.max(1, Math.floor(w*dpr));
+      canvas.height = Math.max(1, Math.floor(h*dpr));
+      canvas.style.width = w + 'px'; canvas.style.height = h + 'px';
+      ctx.setTransform(dpr,0,0,dpr,0,0);
+      var count = Math.min(130, Math.floor((w*h)/14000));
+      particles = [];
+      for(var i=0;i<count;i++){
+        particles.push({
+          x: Math.random()*w, y: Math.random()*h,
+          vx:(Math.random()-0.5)*0.18, vy:(Math.random()-0.5)*0.18,
+          r: 1 + Math.random()*1.6, boost:0
+        });
+      }
+    }
+
+    function debounce(fn, ms){
+      var t;
+      return function(){
+        var args = arguments, ctx2 = this;
+        clearTimeout(t);
+        t = setTimeout(function(){ fn.apply(ctx2, args); }, ms);
+      };
+    }
+
+    window.addEventListener('resize', debounce(resize, 200));
+    resize();
+
+    function spawnPing(){
+      pings.push({x:Math.random()*w, y:Math.random()*h, r:0, max: 170 + Math.random()*130});
+      setTimeout(spawnPing, 4200 + Math.random()*3600);
+    }
+    if(!reduceMotion){ setTimeout(spawnPing, 2000); }
+
+    function draw(){
+      ctx.clearRect(0,0,w,h);
+
+      for(var i=pings.length-1;i>=0;i--){
+        var p = pings[i];
+        p.r += 1.6;
+        if(p.r > p.max){ pings.splice(i,1); continue; }
+        var alpha = (1 - p.r/p.max) * 0.32;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+        ctx.strokeStyle = 'rgba(138,43,226,' + alpha + ')';
+        ctx.lineWidth = 1.4;
+        ctx.stroke();
+      }
+
+      for(var a=0;a<particles.length;a++){
+        var pa = particles[a];
+        pa.x += pa.vx; pa.y += pa.vy;
+        if(pa.x < 0) pa.x = w; if(pa.x > w) pa.x = 0;
+        if(pa.y < 0) pa.y = h; if(pa.y > h) pa.y = 0;
+        pa.boost *= 0.96;
+        for(var pi=0; pi<pings.length; pi++){
+          var pg = pings[pi];
+          var d = Math.hypot(pa.x-pg.x, pa.y-pg.y);
+          if(Math.abs(d - pg.r) < 26){ pa.boost = Math.max(pa.boost, 1); }
+        }
+      }
+
+      ctx.lineWidth = 1;
+      for(var x=0;x<particles.length;x++){
+        for(var y=x+1;y<particles.length;y++){
+          var p1=particles[x], p2=particles[y];
+          var dx=p1.x-p2.x, dy=p1.y-p2.y;
+          var dist = Math.sqrt(dx*dx+dy*dy);
+          if(dist < 95){
+            var lalpha = (1 - dist/95) * 0.16;
+            ctx.strokeStyle = 'rgba(0,243,255,' + lalpha + ')';
+            ctx.beginPath();
+            ctx.moveTo(p1.x,p1.y); ctx.lineTo(p2.x,p2.y);
+            ctx.stroke();
+          }
+        }
+      }
+
+      for(var z=0;z<particles.length;z++){
+        var pz = particles[z];
+        var r = pz.r + pz.boost*2;
+        var boosted = pz.boost > 0.05;
+        ctx.beginPath();
+        ctx.arc(pz.x, pz.y, r, 0, Math.PI*2);
+        ctx.fillStyle = boosted ? 'rgba(186,140,255,' + (0.55+pz.boost*0.4) + ')' : 'rgba(0,243,255,0.55)';
+        ctx.shadowColor = boosted ? 'rgba(138,43,226,0.9)' : 'rgba(0,243,255,0.9)';
+        ctx.shadowBlur = boosted ? 10 : 6;
+        ctx.fill();
+      }
+      ctx.shadowBlur = 0;
+
+      if(!reduceMotion){ requestAnimationFrame(draw); }
+    }
+
+    if(reduceMotion){ draw(); } else { requestAnimationFrame(draw); }
+  }
+})();
+</script>
+</body>
+</html>
